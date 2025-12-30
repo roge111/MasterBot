@@ -5,6 +5,7 @@ from psycopg2 import OperationalError, InterfaceError, DatabaseError
 
 load_dotenv()
 
+
 class DatabaseManager:
     def __init__(self):
         self.connection = None

@@ -25,6 +25,7 @@ class ManagerYandexGPT:
     
 
 
+
     
     def parser_response_gpt(self, response) -> str:
         """Улучшенный парсер с обработкой всех крайних случаев"""

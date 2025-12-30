@@ -285,6 +285,7 @@ class Request:
                         await message.answer('Неверно указан номер заявки или же это не ваша заявка.')
                         await self.info_request(message, state)
                         return 
+                    
                 request = request[0]
                 print(request)
                 answer_message = f"Информация по заявка с номером (id) = {request[0]}"

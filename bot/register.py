@@ -23,6 +23,7 @@ class Register:
         return re.match(pattern, phone) is not None
 
         
+        
     async def register(self, message: types.Message, state: FSMContext):
         
         await message.answer("Введите номер телефона в формате: +71234567890")
