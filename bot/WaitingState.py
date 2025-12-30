@@ -1,0 +1,15 @@
+from aiogram.fsm.state import State, StatesGroup
+class WaitingState(StatesGroup):
+    waiting_number = State()
+    waiting_full_name = State()
+    waiting_address = State()
+    waiting_description = State()
+    waiting_technical_info = State()
+    waiting_end = State()
+    waiting_id_request = State()
+    waiting_date = State()
+    waiting_date_end = State()
+    waiting_message_to_master = State()
+    waiting_message_to_support = State()
+    waiting_feedback = State()
+    waiting_mark = State()
