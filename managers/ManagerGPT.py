@@ -2,6 +2,7 @@
 from dotenv import load_dotenv
 from datetime import datetime
 
+
 import requests
 import os
 import json
@@ -18,15 +19,13 @@ YANDEX_GPT_URL = os.getenv('YANDEX_GPT_URL')
 
 YANDEX_API_DIR = os.getenv('YANDEX_API_DIR')
 
+
+
 class ManagerYandexGPT:
     def __init__(self):
         pass
     
-    
 
-
-
-    
     def parser_response_gpt(self, response) -> str:
         """Улучшенный парсер с обработкой всех крайних случаев"""
         # Удаляем лишние пробелы и переносы в начале/конце

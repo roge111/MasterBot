@@ -18,12 +18,14 @@ class Keyboard:
         self.history_master = 'История заявок мастера'
         self.info_request = 'Информация о заявке'
         self.new_requests = 'Список новых заявок'
+        self.ask_gpt = 'Задать вопрос GPT'
     def get_main_menu(self):
         keyboard = ReplyKeyboardMarkup(keyboard=[
             [KeyboardButton(text=self.create_request)],
             [KeyboardButton(text=self.text_for_master)],
             [KeyboardButton(text=self.text_for_support)],
-            [KeyboardButton(text=self.feedback)]
+            [KeyboardButton(text=self.feedback)],
+            [KeyboardButton(text=self.ask_gpt)]
         ], resize_keyboard=True)
         return keyboard
     
@@ -37,6 +39,7 @@ class Keyboard:
             [KeyboardButton(text=self.text_for_support)],
             [KeyboardButton(text= self.history_master)],
             [KeyboardButton(text= self.info_request)],
-            [KeyboardButton(text= self.new_requests)]
+            [KeyboardButton(text= self.new_requests)],
+            [KeyboardButton(text=self.ask_gpt)]
         ], resize_keyboard=True)
         return keyboard

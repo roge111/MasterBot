@@ -9,12 +9,13 @@ if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 
 from managers.Database import DatabaseManager
+from managers.ManagerGPT import ManagerYandexGPT
 from bot.register import Register
 from bot.Request import Request
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from bot.WaitingState import WaitingState
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
 from bot.KeyBoards import Keyboard
 import asyncio
 import logging
@@ -23,12 +24,15 @@ from aiogram.fsm.context import FSMContext
 # Загрузка переменных окружения
 load_dotenv()
 
+
+
 db = DatabaseManager()
 TG_BOT_TOKEN = os.getenv('TG_TOKEN')
 bot = Bot(token=TG_BOT_TOKEN)
 register = Register()
 request = Request()
 dp = Dispatcher()
+gpt = ManagerYandexGPT()
 key_board = Keyboard()
 
 MASTER_ID = os.getenv('MASTER_ID')
@@ -187,7 +191,17 @@ async def message_to_support_handler(message: types.Message, state: FSMContext):
 
 
 
+@dp.message(F.text == key_board.ask_gpt)
+async def ask_gpt(message: types.Message, state: FSMContext):
+    await message.answer('Введите сообщение для GPT')
+    await state.set_state(WaitingState.waiting_gpt)
 
+async def ask_gpt_request(message: types.Message, state: FSMContext):
+    request_user = message.text
+    response = gpt.ask_yandex_gpt(request_user)
+    print(response)
+    response_parse = gpt.parser_response_gpt(response)
+    await message.answer(f"Алиса отвечае:\n{response_parse}")
 
 @dp.message(F.text == key_board.feedback)
 async def feedback(message: types.Message, state: FSMContext):

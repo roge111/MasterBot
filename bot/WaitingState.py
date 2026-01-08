@@ -13,4 +13,4 @@ class WaitingState(StatesGroup):
     waiting_message_to_support = State()
     waiting_feedback = State()
     waiting_mark = State()
-    
+    waiting_gpt = State()
