@@ -196,12 +196,16 @@ async def ask_gpt(message: types.Message, state: FSMContext):
     await message.answer('Введите сообщение для GPT')
     await state.set_state(WaitingState.waiting_gpt)
 
+@dp.message(WaitingState.waiting_gpt)
 async def ask_gpt_request(message: types.Message, state: FSMContext):
     request_user = message.text
     response = gpt.ask_yandex_gpt(request_user)
-    print(response)
-    response_parse = gpt.parser_response_gpt(response)
-    await message.answer(f"Алиса отвечае:\n{response_parse}")
+    if not(response[1]):
+        response_parse = gpt.parser_response_gpt(response[0])
+        await message.answer(f"Алиса отвечает:\n{response_parse}")
+    else:
+        await message.answer(f"В Алисе произошел сбой... Поддержка чинит. Если ошибка повториться, напишите в поддержку.")
+        await bot.send_message(chat_id=SUPPORT_ID, text=f"Произошел сбой у пользователя с id {message.from_user.id}. Ошибка произошла при работе Алисы:\n   {response}")
 
 @dp.message(F.text == key_board.feedback)
 async def feedback(message: types.Message, state: FSMContext):

@@ -64,15 +64,15 @@ class ManagerYandexGPT:
         
 
     
-    def ask_yandex_gpt(self, request: str, user_id: int, tariff_plan: str) -> str:
+    def ask_yandex_gpt(self, request: str) -> str:
         try:
-            system_text = 'Отвечай на вопросы по технике простыми словами. Например, "Что значит такая ошибка на такой стиральной машине и как исправить ?". Это пример. Также помогай выбирать технику для покупки. Ты помощник в боте по подаче заявок на ремонт бытовой технике и гаджетов.'
+            system_text = 'Отвечай на вопросы по технике простыми словами. Например, "Что значит такая ошибка на такой стиральной машине и как исправить ?". Это пример. Также помогай выбирать технику для покупки. Ты помощник в боте по подаче заявок на ремонт бытовой технике и гаджетов. Если нект конкретного вопроса, уточни и напомню, чтоб заново нажали на кнопку'
             headers = {
                 "Authorization": f'Api-Key {YANDEX_API_KEY}'
         }
 
             promt = {
-            "modelUri": f"gpt://{YANDEX_API_DIR}/yandexgpt-pro",
+            "modelUri": f"gpt://{YANDEX_API_DIR}/yandexgpt",
             "completionOptions": {
                 "stream": False,
                 "temperature": 0.6,
@@ -93,8 +93,11 @@ class ManagerYandexGPT:
             ]
             }  
             response = requests.post(YANDEX_GPT_URL, headers=headers, json=promt)
+            if 'error' in response and not(len(request)):
+                return response, True
             result = response.text
             return result, False
+            
         except Exception as e:
-            return f"❌ Ошибка при исполнении: {e}. Передайте ее в /support. ", True
+            return f"❌ Ошибка при исполнении: {e}.", True
 
