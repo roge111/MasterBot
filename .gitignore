@@ -1,0 +1,12 @@
+# Секретные файлы
+.env
+.env.local
+.env.*.local
+
+# Логи
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
