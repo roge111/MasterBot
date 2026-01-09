@@ -195,6 +195,7 @@ async def message_to_support_handler(message: types.Message, state: FSMContext):
 async def ask_gpt(message: types.Message, state: FSMContext):
     await message.answer('Введите сообщение для GPT')
     await state.set_state(WaitingState.waiting_gpt)
+    
 
 @dp.message(WaitingState.waiting_gpt)
 async def ask_gpt_request(message: types.Message, state: FSMContext):

@@ -71,6 +71,7 @@ class ManagerYandexGPT:
                 "Authorization": f'Api-Key {YANDEX_API_KEY}'
         }
 
+
             promt = {
             "modelUri": f"gpt://{YANDEX_API_DIR}/yandexgpt",
             "completionOptions": {
