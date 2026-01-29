@@ -2,7 +2,7 @@ from aiogram import Bot, types
 from aiogram.fsm.context import FSMContext
 from bot.WaitingState import WaitingState
 from managers.Database import DatabaseManager
-from datetime import datetime
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from bot.KeyBoards import Keyboard
@@ -53,6 +53,38 @@ class Request:
         clean_pattern = re.sub(r'\n|\s{2,}', '', clean_pattern)  # убрать переносы и множественные пробелы
         
         return re.match(clean_pattern, address.strip()) is not None
+    
+    def get_dates_keyboard(self):
+        # Создаем список кнопок
+        buttons = []
+        today = datetime.now()
+        
+        for i in range(7):
+            date = today + timedelta(days=i)
+            date_str = date.strftime("%d.%m.%Y")
+            callback_data = f"date_{date.strftime('%Y-%m-%d')}"
+            buttons.append([InlineKeyboardButton(text=date_str, callback_data=callback_data)])
+        
+        # Передаем кнопки в конструктор
+        keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+        return keyboard
+
+
+# Генерация клавиатуры со временем
+    def get_times_keyboard(self):
+        times = ["09:00", "10:00", "11:00", "12:00",
+                "13:00", "14:00", "15:00", "16:00",
+                "17:00", "18:00", "19:00", "20:00"]
+        
+        buttons = []
+        for i in range(0, len(times), 4):
+            row = []
+            for j in range(i, min(i + 4, len(times))):
+                row.append(InlineKeyboardButton(text=times[j], callback_data=f"time_{times[j]}"))
+            buttons.append(row)
+        
+        keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+        return keyboard
 
     @staticmethod
     def validate_datetime(value: str) -> bool:
@@ -195,7 +227,7 @@ class Request:
 
 
             db.query_database(f"INSERT INTO requests (user_id, address, technical_type, description, date_create, phone_number, status) VALUES ({user_id}, '{address}', '{info}', '{description}', '{date_now}', '{phone_number}', 'new')", reg=True)
-            await message.answer('Заявка отправлена. Ожидайте, с Вам напишет или позвонит мастер.')
+            await message.answer('Заявка отправлена. Ожидайте, Вам напишет или позвонит мастер.')
             result = db.query_database('SELECT request_id FROM requests ORDER BY request_id DESC LIMIT 1;')
             if not(len(result)):
                 await message.answer('Возникла ошибка, обратитесь в поддержку')
@@ -222,7 +254,7 @@ class Request:
         if self.validate_request_id(request_id):
             if type_command == 'accept':
                 
-                await message.answer(f'Введите дату начала периода, в которое может прийти мастер в формате ДД.ММ.ГГГГ ЧЧ:ММ')
+                await message.answer(f'Введите дату начала периода: ', reply_markup=self.get_dates_keyboard())
                 await state.update_data(request_id = request_id)
                 await state.set_state(WaitingState.waiting_date)
                 
@@ -316,29 +348,38 @@ class Request:
                 await state.clear()
 
 
-    async def accept_wait_date_start(self, message: types.Message, state: FSMContext):
+    async def accept_wait_date_start(self, callback_query: types.CallbackQuery, state: FSMContext):
         data = await state.get_data()
         request_id = data.get('request_id')
-        date = message.text
-
-        if not(self.validate_datetime(date)):
-            await message.answer('❌Неверный формат даты')
-            await self.accept_wait_id(message, state)
-        
-        date_format = self.parse_datetime(date)
-
-        master_id = db.query_database(f'select id from masters where tg_id = {message.from_user.id}')
+        date = callback_query.data.replace('date_', '')
+        await state.update_data(date=date)
+       
+        master_id = db.query_database(f'select id from masters where tg_id = {callback_query.from_user.id}')
         if not(master_id):
-            await message.answer('Ошибка чтения мастера. Возможно вы им не являетесь.')
+            await callback_query.message.answer('Ошибка чтения мастера. Возможно вы им не являетесь.')
             return
         
 
-        db.query_database(f"UPDATE requests SET date_work_start = '{date_format}', status = 'in_work', master_id = {master_id[0][0]} WHERE request_id = {request_id}", reg=True)
-        await message.answer('Заявка принята. Теперь введите дату и время окончания периода, в которое может прийти мастер в формате ДД.ММ.ГГГГ ЧЧ:ММ')
-        tg_id = db.query_database(f"SELECT users.tg_id FROM requests JOIN users ON requests.user_id = users.user_id WHERE requests.request_id = {request_id}")[0][0]
-        await bot.send_message(chat_id=tg_id, text=f'В заявке с id={request_id} информация. Дата посещения мастером (начало периода): {date}.')
+        await callback_query.message.edit_text(
+            f"Дата: {date}\n⏰ Теперь выберите время:",
+            reply_markup=self.get_times_keyboard()
+        )
+        await callback_query.answer()
+        await state.set_state(WaitingState.waiting_time_start)
+    async def process_time_fsm(callback_query: types.CallbackQuery, state: FSMContext):
+        async with state.proxy() as data:
+            data['time'] = callback_query.data.replace('time_', '')
+            await callback_query.message.answer(
+                f"Теперь введите дату окончания периода"
+            )
+        
         await state.set_state(WaitingState.waiting_date_end)
+        await callback_query.answer()
 
+    # Функция для обработки ввода даты окончания периода
+    async def accept_end_date(message: types.Message, state: FSMContext, self):
+        await message.answer(f'Введите дату окончания периода: ', reply_markup=self.get_dates_keyboard())
+        await state.set_state(WaitingState.waiting_date)
     async def accept(self, message: types.Message, state: FSMContext):
         data = await state.get_data()
         request_id = data.get('request_id')

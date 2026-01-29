@@ -136,7 +136,7 @@ async def accept_request(message: types.Message, state: FSMContext):
 @dp.message(WaitingState.waiting_id_request)
 async def accept_request_id(message: types.Message, state: FSMContext):
     await request.accept_wait_id(message, state)
-@dp.message(WaitingState.waiting_date)
+@dp.callback_query(WaitingState.waiting_date)
 async def accept_request_date(message: types.Message, state: FSMContext):
     await request.accept_wait_date_start(message, state)
 
